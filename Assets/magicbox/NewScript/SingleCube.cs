@@ -8,7 +8,7 @@ public class SingleCube : MonoBehaviour
 	public Dictionary<GameObject,MagicColor> cubecolor = new Dictionary<GameObject, MagicColor> ();
 	// 块的类型，一旦设置将不再进行修改
 	public CubeStyle cubestyle = CubeStyle.None;
-	public int locationIndex;
+	public int index;
 	//	public int finishIndex;
 
 	private MyMagicCube operater;
@@ -21,7 +21,7 @@ public class SingleCube : MonoBehaviour
 
 	void Start ()
 	{
-		AdjustPos ();
+//		AdjustPos ();
 		operater = FindObjectOfType <MyMagicCube> ();
 	}
 

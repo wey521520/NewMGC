@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Reflection;
 
 public class MyMagicCube : MonoBehaviour
 {
@@ -12,9 +13,12 @@ public class MyMagicCube : MonoBehaviour
 	// 魔方的（9*6）54个单元面，用来捕捉鼠标或touch事件
 	public GameObject FacePrefab;
 
-	public float singlecubesize = 1f;
+	//这个需要跟摄像机一起改，以后大概是不方便改了
+	private const float CubeSize = 1f;
+	//魔方的阶数
+	private const int CubeClass = 3;
 
-	private SingleCube[] singlecubes;
+	private SingleCube[] Cubes;
 	private CubeFace[] cubefaces;
 
 	#endregion
@@ -69,9 +73,31 @@ public class MyMagicCube : MonoBehaviour
 
 	void Start ()
 	{
-		CreatCube ();
-		rlength = 180f / Screen.width / 0.23f / 3.14f;
+//		rlength = 180f / Screen.width / 0.23f / 3.14f;
+		rlength = 249f / Screen.width;// 上式计算后得
 
+		CreatCube ();
+
+		InitColorstore ();
+
+		InitScene ();
+	}
+
+	void InitScene ()
+	{
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Formular) {
+			SetFullColor ();
+		} else if (Global.State == Global.GameState.Color) {
+			SetEditColor ();
+		} else if (Global.State == Global.GameState.Exercise || Global.State == Global.GameState.Learn) {
+			//设置一个公式库唯一标志号，用来调用公式场景和所需公式。
+			SetFullColor ();
+		} 
+		
+	}
+
+	void InitColorstore ()
+	{
 		EditColorStore.Add (MagicColor.White, 0);
 		EditColorStore.Add (MagicColor.Red, 0);
 		EditColorStore.Add (MagicColor.Yellow, 0);
@@ -79,39 +105,65 @@ public class MyMagicCube : MonoBehaviour
 		EditColorStore.Add (MagicColor.Blue, 0);
 		EditColorStore.Add (MagicColor.Orange, 0);
 		EditColorStore.Add (MagicColor.None, 0);
-
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Formular) {
-			SetFullColor ();
-		} else if (Global.State == Global.GameState.Color) {
-			SetEditColor ();
-		} else if (Global.State == Global.GameState.Exercise || Global.State == Global.GameState.Learn) {
-			//设置一个公式库唯一标志号，用来调用公式场景和所需公式。
-		} 
 	}
 
 	#region creat
 
+	// 修改适用于N阶魔方的初始化
 	void CreatCube ()
 	{
 		if (CubePrefab == null || FacePrefab == null) {
-			Debug.Log ("找不到单体！");
+			Debug.LogWarning ("找不到单体！cann't find the cube or face!");
 			return;
 		}
-		singlecubes = new SingleCube[27];
+
+//		Cubes = new SingleCube[27];
+
+		int numInClass = CubeClass * CubeClass;
+		int numInCube = numInClass * CubeClass;
+
+		Cubes = new SingleCube[numInCube];
+
 		// 先实例化魔方的块（这里只实例化实际的东西，初始化的时候再判断游戏的模式）
-		for (int i = 0; i < 27; i++) {
+		for (int i = 0; i < Cubes.Length; i++) {
+			
 			GameObject obj = Instantiate (CubePrefab);
 			obj.transform.SetParent (this.transform);
-			obj.transform.localScale = Vector3.one * singlecubesize * 0.99f;
-			obj.transform.position = new Vector3 ((i % 9) / 3 - 1, i / 9 - 1, i % 3 - 1) * singlecubesize;
-			obj.name = "Cube" + i.ToString ("D2") + obj.transform.position;
+			obj.transform.localScale = Vector3.one * CubeSize * 0.99f * 3f / CubeClass;
+			obj.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * ((i % numInClass) / CubeClass),
+				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i / numInClass),
+				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i % CubeClass)) * CubeSize;
+			obj.name = "C_" + i.ToString ("D2") + "_" + obj.transform.position;
+//			print (obj.name + obj.transform.position);
 
 			SingleCube cube = obj.GetComponent <SingleCube> ();
-			singlecubes [i] = cube;
+			Cubes [i] = cube;
 
-			cube.locationIndex = i;
-			cube.Size = singlecubesize;
+			cube.index = i;
+			cube.Size = CubeSize;
 
+			// 判断各个块的属性，为块进行分类，角块，面块和棱块，和内部方块
+			if (i == 0 || i == CubeClass - 1 || i == numInClass - CubeClass || i == numInClass - 1 ||
+			    i == numInCube - 1 || i == numInCube - CubeClass ||
+			    i == numInCube - numInClass + CubeClass - 1 || i == numInCube - numInClass) {
+				cube.cubestyle = CubeStyle.Corner;
+//				print (i + "是顶点");
+			} else if (i > numInClass && i < numInCube - numInClass && i % numInClass > CubeClass && i % numInClass < numInClass - CubeClass &&
+			           i % numInClass % CubeClass != 0 && i % numInClass % CubeClass != CubeClass - 1) {
+				cube.cubestyle = CubeStyle.None;
+//				print (i + "是内点");
+			} else if ((i > CubeClass && i < numInClass - CubeClass && i % CubeClass != 0 && i % CubeClass != CubeClass - 1) ||
+			           (i < numInCube - CubeClass && i > numInCube - numInClass + CubeClass && i % CubeClass != 0 && i % CubeClass != CubeClass - 1) ||
+			           i > numInClass && i < numInCube - numInClass && (((i % numInClass < CubeClass || i % numInClass > numInClass - CubeClass) &&
+			           i % CubeClass != 0 && i % CubeClass != CubeClass - 1) || (i % numInClass >= CubeClass && i % numInClass < numInClass - CubeClass &&
+			           (i % CubeClass == 0 || i % CubeClass == CubeClass - 1)))) {
+				cube.cubestyle = CubeStyle.Face;
+//				print (i + "是面");
+			} else {
+				cube.cubestyle = CubeStyle.Edge;
+//				print (i + "是棱");
+			}
+			/*
 			switch (i) {
 			case 0:
 			case 2:
@@ -149,59 +201,139 @@ public class MyMagicCube : MonoBehaviour
 				cube.cubestyle = CubeStyle.Edge;
 				break;
 			}
-
+*/
 		}
 
-		cubefaces = new CubeFace[54];
-		for (int i = 0; i < 54; i++) {
-			GameObject obj = Instantiate (FacePrefab);
-			cubefaces [i] = obj.GetComponent <CubeFace> ();
+//		cubefaces = new CubeFace[54];
+		cubefaces = new CubeFace[6 * numInClass];
+		for (int i = 0; i < cubefaces.Length; i++) {
+			GameObject objface = Instantiate (FacePrefab);
+			cubefaces [i] = objface.GetComponent <CubeFace> ();
 
 			int j = 0;
 			int l = 0;
+			if (i < numInClass) {
+				j = i;
+				l = j;
+				objface.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass),
+					-1.5f, -1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass)) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (-90, 0, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Down;
+			} else if (i < numInClass * 2) {
+				j = i % numInClass;
+				l = (j / CubeClass) * numInClass + (j % CubeClass) * CubeClass + CubeClass - 1;
+				objface.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass)
+					, -1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass), 1.5f) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (180, 0, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Front;
+			} else if (i < numInClass * 3) {
+				j = i % numInClass;
+				l = (j / CubeClass) * numInClass + j % CubeClass;
+				objface.transform.position = new Vector3 (-1.5f, -1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass),
+					-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass)) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (0, 90, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Right;
+			} else if (i < numInClass * 4) {
+				j = i % numInClass;
+				l = j + numInClass * (CubeClass - 1);
+				objface.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass), 1.5f,
+					-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass)) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (90, 0, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Up;
+			} else if (i < numInClass * 5) {
+				j = i % numInClass;
+				l = (j / CubeClass) * numInClass + (j % CubeClass) * CubeClass;
+				objface.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass),
+					-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass), -1.5f) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (0, 0, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Left;
+			} else if (i < numInClass * 6) {
+				j = i % numInClass;
+				l = (j / CubeClass) * numInClass + j % CubeClass + numInClass - CubeClass;
+				objface.transform.position = new Vector3 (1.5f, -1.5f + 1.5f / CubeClass + 3f / CubeClass * (j / CubeClass),
+					-1.5f + 1.5f / CubeClass + 3f / CubeClass * (j % CubeClass)) * CubeSize;
+				objface.transform.eulerAngles = new Vector3 (0, -90, 0);
+				cubefaces [i].facestyle = CubeFaceStyle.Back;
+			}
+			/*
 			if (i < 9) {
 				j = i;
 				l = j;
-				obj.transform.position = new Vector3 (j / 3 - 1, -1.5f, j % 3f - 1f) * singlecubesize;
+				obj.transform.position = new Vector3 (j / 3 - 1, -1.5f, j % 3f - 1f) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (-90, 0, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Down;
 			} else if (i < 18) {
 				j = i - 9;
 				l = (j / 3) * 9 + (j % 3) * 3 + 2;
-				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, 1.5f) * singlecubesize;
+				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, 1.5f) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (180, 0, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Front;
 			} else if (i < 27) {
 				j = i - 18;
 				l = (j / 3) * 9 + j % 3;
-				obj.transform.position = new Vector3 (-1.5f, j / 3 - 1, j % 3 - 1) * singlecubesize;
+				obj.transform.position = new Vector3 (-1.5f, j / 3 - 1, j % 3 - 1) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (0, 90, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Right;
 			} else if (i < 36) {
 				j = i - 27;
 				l = j + 18;
-				obj.transform.position = new Vector3 (j / 3 - 1, 1.5f, j % 3f - 1f) * singlecubesize;
+				obj.transform.position = new Vector3 (j / 3 - 1, 1.5f, j % 3f - 1f) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (90, 0, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Up;
 			} else if (i < 45) {
 				j = i - 36;
 				l = (j / 3) * 9 + (j % 3) * 3;
-				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, -1.5f) * singlecubesize;
+				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, -1.5f) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (0, 0, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Left;
 			} else if (i < 54) {
 				j = i - 45;
 				l = (j / 3) * 9 + j % 3 + 6;
-				obj.transform.position = new Vector3 (1.5f, j / 3 - 1, j % 3 - 1) * singlecubesize;
+				obj.transform.position = new Vector3 (1.5f, j / 3 - 1, j % 3 - 1) * CubeSize;
 				obj.transform.eulerAngles = new Vector3 (0, -90, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Back;
 			}
-			obj.transform.SetParent (singlecubes [l].transform);
+			*/
 
-			obj.transform.localScale = Vector3.one * singlecubesize;
-			obj.name = "Face" + i.ToString ("D2");
+			objface.transform.SetParent (Cubes [l].transform);
 
-			cubefaces [i].cube = singlecubes [l];
+			objface.transform.localScale = Vector3.one * CubeSize * 0.9f /** 3f / CubeClass*/;
+			objface.name = "Face" + i.ToString ("D2");
+
+			cubefaces [i].cube = Cubes [l];
+		}
+	}
+
+	#endregion
+
+	#region 记录魔方状态，还原魔方状态
+
+	private List<Vector3> positionlist = new List<Vector3> ();
+	private List<Vector3> rotationlist = new List<Vector3> ();
+	private List<MagicColor> colorlist = new List<MagicColor> ();
+
+	public void RecordMagicCubeState ()
+	{
+		positionlist.Clear ();
+		rotationlist.Clear ();
+		colorlist.Clear ();
+		for (int i = 0; i < Cubes.Length; i++) {
+			positionlist.Add (Cubes [i].transform.position);
+			rotationlist.Add (Cubes [i].transform.eulerAngles);
+		}
+		for (int j = 0; j < cubefaces.Length; j++) {
+			colorlist.Add (cubefaces [j].mycolor);
+		}
+	}
+	// 当前的存储只能存储一个魔方状态，至于以后，可能还需要重新修改。
+	public void SetStoreState ()
+	{
+		for (int i = 0; i < Cubes.Length; i++) {
+			Cubes [i].transform.position = positionlist [i];
+			Cubes [i].transform.eulerAngles = rotationlist [i];
+		}
+		for (int j = 0; j < cubefaces.Length; j++) {
+			cubefaces [j].mycolor = colorlist [j];
 		}
 	}
 
@@ -1301,6 +1433,7 @@ public class MyMagicCube : MonoBehaviour
 
 	#region DoRotate Animate
 
+	// 这里是旋转魔方的动画
 	IEnumerator RotateAnimation (List<SingleCube> olist, Vector3 point, Vector3 axis, float angle, float length)
 	{
 		rotating = true;
@@ -1340,13 +1473,13 @@ public class MyMagicCube : MonoBehaviour
 		rotating = false;
 	}
 
-	// Find operate suit. 找到当前操作的块儿组
+	// Find operate suit. 找到当前操作的块儿组，这个需要修改来适应多阶魔方
 	void GetOperateSuit (OperateSuit str)
 	{
 		switch (str) {
 		case OperateSuit.Left:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.z > 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1354,7 +1487,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Right:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.z < -0.5f) {
 					operatelist.Add (b);
 				}
@@ -1362,7 +1495,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Up:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.y > 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1370,7 +1503,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Down:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.y < -0.5f) {
 					operatelist.Add (b);
 				}
@@ -1378,7 +1511,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Front:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.x < -0.5f) {
 					operatelist.Add (b);
 				}
@@ -1386,7 +1519,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Back:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.x > 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1394,13 +1527,13 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.Entriety:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				operatelist.Add (b);
 			}
 			break;
 		case OperateSuit.MiddleX:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.x >= -0.5f && b.transform.position.x <= 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1408,7 +1541,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.MiddleY:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.y >= -0.5f && b.transform.position.y <= 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1416,7 +1549,7 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		case OperateSuit.MiddleZ:
 			operatelist.Clear ();
-			foreach (SingleCube b in singlecubes) {
+			foreach (SingleCube b in Cubes) {
 				if (b.transform.position.z >= -0.5f && b.transform.position.z <= 0.5f) {
 					operatelist.Add (b);
 				}
@@ -1644,12 +1777,12 @@ public class MyMagicCube : MonoBehaviour
 			//level1 第一层的棱块
 			// 取最上面一层为操作层，需要显示的块的颜色为最上面一层的十字和对应的邻面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 1.25 * singlecubesize &&
-				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				if (cf.transform.position.y > 1.25 * CubeSize &&
+				    (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if ((cf.transform.position.y > 0.75 * singlecubesize && cf.transform.position.y < 1.75 * singlecubesize) &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				} else if ((cf.transform.position.y > 0.75 * CubeSize && cf.transform.position.y < 1.75 * CubeSize) &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1659,7 +1792,7 @@ public class MyMagicCube : MonoBehaviour
 			//level2 第一层
 			// 取最上面一层为操作层，需要显示的块的颜色为最上面一层和对应的邻面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 0.5 * singlecubesize) {
+				if (cf.transform.position.y > 0.5 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1669,7 +1802,7 @@ public class MyMagicCube : MonoBehaviour
 			//level3 第二层
 			// 取最上面两层为操作层，需要显示的块的颜色为最上面两层的所有面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > -0.5 * singlecubesize) {
+				if (cf.transform.position.y > -0.5 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1679,11 +1812,11 @@ public class MyMagicCube : MonoBehaviour
 			//level4 下两层和顶面的十字
 			// 需要显示的块的颜色为下面两层的所有面和顶面的十字
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5 * singlecubesize) {
+				if (cf.transform.position.y < 0.5 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 1.25 * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				} else if (cf.transform.position.y > 1.25 * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1693,10 +1826,10 @@ public class MyMagicCube : MonoBehaviour
 			//level5 下两层和顶面
 			// 需要显示的块的颜色为下面两层的所有面和顶面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5 * singlecubesize) {
+				if (cf.transform.position.y < 0.5 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 1.25 * singlecubesize) {
+				} else if (cf.transform.position.y > 1.25 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1706,14 +1839,14 @@ public class MyMagicCube : MonoBehaviour
 			//level6 下两层和顶面以及四个角块
 			// 需要显示的块的颜色为下面两层的所有面和顶面以及四个角块对应的面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5 * singlecubesize) {
+				if (cf.transform.position.y < 0.5 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 1.25 * singlecubesize) {
+				} else if (cf.transform.position.y > 1.25 * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if ((cf.transform.position.y > 0.5 * singlecubesize && cf.transform.position.y < 1.25 * singlecubesize) &&
-				           !(Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				} else if ((cf.transform.position.y > 0.5 * CubeSize && cf.transform.position.y < 1.25 * CubeSize) &&
+				           !(Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1739,10 +1872,10 @@ public class MyMagicCube : MonoBehaviour
 	// 将魔方的所有块都放在初始化的状态，以便后续应用存储的面片数据来初始化魔方状态
 	void ToOriginalPos ()
 	{
-		for (int i = 0; i < singlecubes.Length; i++) {
-			singlecubes [i].transform.position = new 
-				Vector3 ((i % 9) / 3 - 1, i / 9 - 1, i % 3 - 1) * singlecubesize;
-			singlecubes [i].transform.eulerAngles = Vector3.zero;
+		for (int i = 0; i < Cubes.Length; i++) {
+			Cubes [i].transform.position = new 
+				Vector3 ((i % 9) / 3 - 1, i / 9 - 1, i % 3 - 1) * CubeSize;
+			Cubes [i].transform.eulerAngles = Vector3.zero;
 		}
 	}
 
@@ -1760,8 +1893,8 @@ public class MyMagicCube : MonoBehaviour
 		case "FEdge1":
 			// R
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 0.75 * singlecubesize &&
-				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				if (cf.transform.position.y > 0.75 * CubeSize &&
+				    (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1774,8 +1907,8 @@ public class MyMagicCube : MonoBehaviour
 		case "FEdge2":
 			// R2
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 0.75 * singlecubesize &&
-				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				if (cf.transform.position.y > 0.75 * CubeSize &&
+				    (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1788,8 +1921,8 @@ public class MyMagicCube : MonoBehaviour
 		case "FEdge3":
 			// R0
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 0.75 * singlecubesize &&
-				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				if (cf.transform.position.y > 0.75 * CubeSize &&
+				    (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1802,8 +1935,8 @@ public class MyMagicCube : MonoBehaviour
 		case "FEdge4":
 			// R,U0,B,U
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y > 0.75 * singlecubesize &&
-				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)) {
+				if (cf.transform.position.y > 0.75 * CubeSize &&
+				    (Mathf.Abs (cf.transform.position.x) < 0.25 * CubeSize || Mathf.Abs (cf.transform.position.z) < 0.25 * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1814,7 +1947,7 @@ public class MyMagicCube : MonoBehaviour
 		case "FCorner1":
 			// R,U,R0,U0,R,U,R0,U0,R,U,R0,U0
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < -0.75 * singlecubesize 
+				if (cf.transform.position.y < -0.75 * CubeSize 
 					/*&&
 				    (Mathf.Abs (cf.transform.position.x) < 0.25 * singlecubesize || 
 						Mathf.Abs (cf.transform.position.z) < 0.25 * singlecubesize)*/) {
@@ -1849,7 +1982,7 @@ public class MyMagicCube : MonoBehaviour
 			// 第二层棱块公式
 			// 首先需要初始化魔方状态，然后运行公式，魔方的位置不能动。
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < -0.5f * singlecubesize) {
+				if (cf.transform.position.y < -0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1864,7 +1997,7 @@ public class MyMagicCube : MonoBehaviour
 			// 第二层棱块公式
 			// 首先需要初始化魔方状态，然后运行公式，魔方的位置不能动。
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < -0.5f * singlecubesize) {
+				if (cf.transform.position.y < -0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1877,13 +2010,13 @@ public class MyMagicCube : MonoBehaviour
 			// F,R,U,R0,U0,F0
 			// 第三层顶面中心点状态
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           cf.transform.position.y < 1.25f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           cf.transform.position.y < 1.25f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.SetEditColor (MagicColor.Yellow);
 				}
 			}
@@ -1892,7 +2025,7 @@ public class MyMagicCube : MonoBehaviour
 			// F,R,U,R0,U0,F0
 			// 第三层顶面中折点状态
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1906,7 +2039,7 @@ public class MyMagicCube : MonoBehaviour
 			// F,R,U,R0,U0,F0
 			// 第三层顶面直线状态
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1920,12 +2053,12 @@ public class MyMagicCube : MonoBehaviour
 			// R,U,R0,U,R,U2,R0
 			// 第三层，十字对面错位
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1937,12 +2070,12 @@ public class MyMagicCube : MonoBehaviour
 			// R,U,R0,U,R,U2,R0,U
 			// 第三层，十字相邻错位
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1954,12 +2087,12 @@ public class MyMagicCube : MonoBehaviour
 			// U,R,U0,L0,U,R0,U0,L
 			// 第三层，十字完成，需要一步到十字状态（就是四角上面都没有顶面颜色）
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1973,12 +2106,12 @@ public class MyMagicCube : MonoBehaviour
 			// U,R,U0,L0,U,R0,U0,L
 			// 第三层，十字完成，需要一步到十字状态（就是四角上面都没有顶面颜色）
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -1992,12 +2125,12 @@ public class MyMagicCube : MonoBehaviour
 			// U,R,U0,L0,U,R0,U0,L
 			// 第三层，十字完成，需要一步到十字状态（就是四角上面都没有顶面颜色）
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -2011,12 +2144,12 @@ public class MyMagicCube : MonoBehaviour
 			// U,R,U0,L0,U,R0,U0,L
 			// 第三层，十字完成，顶面四角都没有顶面颜色，需要一步到小鱼状态（就是四角上面只有一个是顶面颜色）
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -2030,12 +2163,12 @@ public class MyMagicCube : MonoBehaviour
 			// R,U,R0,U,R,U2,R0,U
 			// 第三层，十字完成，顶面四角都没有顶面颜色，需要一步到小鱼状态（就是四角上面只有一个是顶面颜色）
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -2049,12 +2182,12 @@ public class MyMagicCube : MonoBehaviour
 			// U,R,U0,L0,U,R0,U0,L
 			// 第三层，十字完成，就是四角上面只有一个是顶面颜色，按照公式转换成另外一个小鱼状态，再按照公式就可以完成顶面
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}
@@ -2069,12 +2202,12 @@ public class MyMagicCube : MonoBehaviour
 			// 第三层，十字完成，小鱼公式，可以使用一个公式转成另外一个小鱼状态，
 			// 也可以使用一个公式，来完成上面顶面颜色层
 			foreach (CubeFace cf in cubefaces) {
-				if (cf.transform.position.y < 0.5f * singlecubesize) {
+				if (cf.transform.position.y < 0.5f * CubeSize) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
-				} else if (cf.transform.position.y > 0.5f * singlecubesize &&
-				           (Mathf.Abs (cf.transform.position.x) < 0.25f * singlecubesize ||
-				           Mathf.Abs (cf.transform.position.z) < 0.25f * singlecubesize)) {
+				} else if (cf.transform.position.y > 0.5f * CubeSize &&
+				           (Mathf.Abs (cf.transform.position.x) < 0.25f * CubeSize ||
+				           Mathf.Abs (cf.transform.position.z) < 0.25f * CubeSize)) {
 					cf.UpdateFaceStyle ();
 					cf.SetDefaultColor ();
 				}

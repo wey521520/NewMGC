@@ -159,6 +159,11 @@ public class MyUIControler : MonoBehaviour
 			Global.State = Global.GameState.Setting;
 			break;
 		}
+		if (val == "setting") {
+			Application.LoadLevel ("OtherFucntions");
+		} else {
+			Application.LoadLevel ("GameScene");
+		}
 	}
 }
 

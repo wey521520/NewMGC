@@ -49,6 +49,7 @@
      <Compile Include="Assets\MenuPage\MyGUI.cs" />
      <Compile Include="Assets\MenuPage\MyUIControler.cs" />
      <Compile Include="Assets\MenuPage\StateButton.cs" />
+     <Compile Include="Assets\ass.cs" />
      <Compile Include="Assets\magicbox\MirrorReflection\MirrorReflection.cs" />
      <Compile Include="Assets\magicbox\NewScript\CubeFace.cs" />
      <Compile Include="Assets\magicbox\NewScript\MyMagicCube.cs" />
@@ -66,10 +67,10 @@
      <Compile Include="Assets\magicbox\Script\SingleBoxPiece.cs" />
      <Compile Include="Assets\magicbox\Script\SingleKey.cs" />
      <None Include="Assets\Plugins\GoKit\easing\easeEquationsLicense.txt" />
-     <None Include="Assets\magicbox\aaa 3.txt" />
-     <None Include="Assets\magicbox\aaa.txt" />
-     <None Include="Assets\magicbox\aaa 2.txt" />
-     <None Include="Assets\magicbox\aaa 1.txt" />
+     <None Include="Assets\magicbox\pastduefiles\aaa 3.txt" />
+     <None Include="Assets\magicbox\pastduefiles\aaa.txt" />
+     <None Include="Assets\magicbox\pastduefiles\aaa 2.txt" />
+     <None Include="Assets\magicbox\pastduefiles\aaa 1.txt" />
      <None Include="Assets\magicbox\MirrorReflection\MirrorReflection.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>/Applications/UnityForTest/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

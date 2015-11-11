@@ -1,9 +1,12 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Plugins/Global.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/MenuPage/MyUIControler.cs">
     <Files>
-      <File FileName="Assets/MenuPage/KeyBoard.cs" Line="58" Column="66" />
-      <File FileName="Assets/Plugins/Global.cs" Line="170" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/MyMagicCube.cs" Line="95" Column="5" />
+      <File FileName="Assets/MenuPage/KeyBoard.cs" Line="12" Column="2" />
+      <File FileName="Assets/Plugins/Global.cs" Line="335" Column="54" />
+      <File FileName="Assets/magicbox/NewScript/SingleCube.cs" Line="23" Column="3" />
+      <File FileName="Assets/MenuPage/MyUIControler.cs" Line="14" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

@@ -116,8 +116,6 @@ public class Global : MonoBehaviour
 
 
 
-
-
 #else
 		static DisplayMetricsAndroid ()
 		{
