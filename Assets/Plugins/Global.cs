@@ -40,6 +40,19 @@ public class Global : MonoBehaviour
 		get{ return state; }
 	}
 
+	public enum CubeStyle
+	{
+		NoStyle = 0,
+		BigFillet,
+		SmallFillet,
+		BigChamfer,
+		SmallChamfer
+	}
+
+	public static CubeStyle cubestyle = CubeStyle.BigFillet;
+
+
+
 	private static SysType _sysType = SysType.OS_UNKNOWN;
 	private static bool _isEditorMode = false;
 	private static bool _isStandalone = false;
@@ -113,6 +126,16 @@ public class Global : MonoBehaviour
 				}
 			}
 		}
+
+
+
+
+
+
+
+
+
+
 
 
 

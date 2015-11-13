@@ -6,7 +6,7 @@ public class CubeFace : MonoBehaviour
 	//惰性距离，滑动不动的距离
 	private const float inertDistance = 0.05f;
 
-	private MyMagicCube operater;
+	public MyMagicCube operater;
 
 	public SingleCube cube;
 
@@ -14,7 +14,7 @@ public class CubeFace : MonoBehaviour
 
 	public MagicColor mycolor;
 
-	void Start ()
+	void Awake ()
 	{
 		operater = FindObjectOfType <MyMagicCube> ();
 	}

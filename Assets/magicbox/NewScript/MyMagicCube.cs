@@ -9,7 +9,10 @@ public class MyMagicCube : MonoBehaviour
 	#region Creat A Cube
 
 	// 单纯的魔方单块的模型（不具备操作特性，即捕捉点击滑动等）
-	public GameObject CubePrefab;
+	private GameObject CubePrefab;
+
+	public GameObject[] cubestylesprefab;
+
 	// 魔方的（9*6）54个单元面，用来捕捉鼠标或touch事件
 	public GameObject FacePrefab;
 
@@ -81,6 +84,8 @@ public class MyMagicCube : MonoBehaviour
 		InitColorstore ();
 
 		InitScene ();
+
+		FormulaLibrary ();
 	}
 
 	void InitScene ()
@@ -112,6 +117,7 @@ public class MyMagicCube : MonoBehaviour
 	// 修改适用于N阶魔方的初始化
 	void CreatCube ()
 	{
+		CubePrefab = cubestylesprefab [(int)Global.cubestyle];
 		if (CubePrefab == null || FacePrefab == null) {
 			Debug.LogWarning ("找不到单体！cann't find the cube or face!");
 			return;
@@ -299,8 +305,8 @@ public class MyMagicCube : MonoBehaviour
 
 			objface.transform.localScale = Vector3.one * CubeSize * 0.9f /** 3f / CubeClass*/;
 			objface.name = "Face" + i.ToString ("D2");
-
 			cubefaces [i].cube = Cubes [l];
+			cubefaces [i].operater = this;
 		}
 	}
 
@@ -1887,7 +1893,7 @@ public class MyMagicCube : MonoBehaviour
 	{
 		ToOriginalPos ();
 		SetEditColor ();
-		string formulaname = "TCorner";
+		string formulaname = "FCorner1";
 		switch (formulaname) {
 		#region states
 		case "FEdge1":
