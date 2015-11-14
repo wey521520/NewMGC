@@ -1,0 +1,17 @@
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/UnityEngine.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/UnityEditor.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/UnityEngine.UI.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/UnityEngine.Networking.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/LitJson.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/UnityEditor.iOS.Extensions.Xcode.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Assembly-CSharp-firstpass.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Assembly-CSharp-firstpass.dll.mdb
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Mono.Cecil.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Unity.SerializationLogic.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Unity.DataContract.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/ICSharpCode.NRefactory.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Unity.UNetWeaver.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Unity.UNetWeaver.dll.mdb
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Unity.CecilTools.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Mono.Cecil.Pdb.dll
+/Users/wueryuan/code/MyMagicCube/Temp/bin/Debug/Mono.Cecil.Mdb.dll

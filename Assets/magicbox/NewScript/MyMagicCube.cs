@@ -76,7 +76,7 @@ public class MyMagicCube : MonoBehaviour
 
 	void Start ()
 	{
-//		rlength = 180f / Screen.width / 0.23f / 3.14f;
+		// rlength = 180f / Screen.width / 0.23f / 3.14f;
 		rlength = 249f / Screen.width;// 上式计算后得
 
 		CreatCube ();
@@ -85,7 +85,6 @@ public class MyMagicCube : MonoBehaviour
 
 		InitScene ();
 
-		FormulaLibrary ();
 	}
 
 	void InitScene ()
@@ -97,8 +96,7 @@ public class MyMagicCube : MonoBehaviour
 		} else if (Global.State == Global.GameState.Exercise || Global.State == Global.GameState.Learn) {
 			//设置一个公式库唯一标志号，用来调用公式场景和所需公式。
 			SetFullColor ();
-		} 
-		
+		}
 	}
 
 	void InitColorstore ()
@@ -308,6 +306,7 @@ public class MyMagicCube : MonoBehaviour
 			cubefaces [i].cube = Cubes [l];
 			cubefaces [i].operater = this;
 		}
+		RecordMagicCubeState ();
 	}
 
 	#endregion
@@ -452,73 +451,124 @@ public class MyMagicCube : MonoBehaviour
 
 	#endregion
 
+	#region UI Operate Function
+
+	//	private bool recordbrokenstate;
+	// 自动打乱魔方，并记录打乱后的状态，清除用户操作记录
+	public void AutoBroken ()
+	{
+		ForceRecover ();
+
+		CreatBrokeFormula ();
+		singleanitime = 0f;
+		spacetime = 0f;
+		print (brokenformular);
+		StartCoroutine (DoBrokenAndRecord ());
+
+		CleanUserOperate ();
+	}
+
+	IEnumerator DoBrokenAndRecord ()
+	{
+		yield return StartCoroutine (DoFormula (brokenformular));
+		RecordMagicCubeState ();
+	}
+
+	// 以上次打乱的状态再来一次
+	public void OnceAgain ()
+	{
+		StopAllCoroutines ();
+		rotating = false;
+		SetStoreState ();
+	}
+	// 强制还原
+	public void ForceRecover ()
+	{
+		StopAllCoroutines ();
+		rotating = false;
+		ToOriginalPos ();
+		ToOriginalColor ();
+	}
+	// 自动还原
+	public void AutoRecover ()
+	{
+		OnceAgain ();
+		singleanitime = 0.4f;
+		spacetime = 0.2f;
+		DoMyFormula (recoverformular);
+	}
+	// 运行记录的玩家的公式
+	public void PlayUserRecord ()
+	{
+		OnceAgain ();
+		singleanitime = 0.4f;
+		spacetime = 0.2f;
+		DoMyFormula (userrecord);
+	}
+	// 运行记录的玩家的公式
+	public void PlayCombinedRecord ()
+	{
+		OnceAgain ();
+		singleanitime = 0.4f;
+		spacetime = 0.2f;
+		DoMyFormula (combinedrecord);
+	}
+
+	#endregion
+
+
 	// for test
 	void OnGUI ()
 	{
-
-//		if (GUILayout.Button ("DoMyFormula")) {
-//			StartCoroutine (DoFormula ());
-//		}
-//		if (GUILayout.Button ("Delete")) {
-//			FormularDelete ();
-//		}
-//		GUILayout.Label ("\t\t\t" + formula);
-//
-//		if (GUILayout.Button ("CreatBrokeFormula")) {
-//			CreatBrokeFormula ();
-//		}
-//		if (GUILayout.Button ("DoBrokeFormula")) {
-//			formula = astr;
-//			spacetime = 0f;
-//			singleanitime = 0f;
-//			StartCoroutine (DoFormula ());
-//		}
-//		if (GUILayout.Button ("DoRecoverFormula")) {
-//			formula = bstr;
-//			spacetime = 0.5f;
-//			singleanitime = 0.4f;
-//			StartCoroutine (DoFormula ());
-//		}
-//		GUILayout.Label ("\t\t\t" + astr);
-//		GUILayout.Label ("\t\t\t" + bstr);
-//		GUILayout.Label ("\t\t\t" + userrecord);
-
+		if (GUI.Button (new Rect (150f, 0f, 100f, 40f), "自动打乱")) {
+			AutoBroken ();		
+		}
+		if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
+			PlayUserRecord ();		
+		}
+		if (GUI.Button (new Rect (150f, 50f, 100f, 40f), "再来一次")) {
+			OnceAgain ();			
+		}
+		if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除用户操作记录")) {
+			CleanUserOperate ();
+		}
+		if (GUI.Button (new Rect (150f, 100f, 100f, 40f), "强制还原")) {
+			ForceRecover ();			
+		}
+		if (GUI.Button (new Rect (300f, 100f, 100f, 40f), "合并用户操作")) {
+			CombineTheUserOperate ();			
+		}
+		if (GUI.Button (new Rect (150f, 150f, 100f, 40f), "自动还原")) {
+			AutoRecover ();			
+		}
+		if (GUI.Button (new Rect (300f, 150f, 100f, 40f), "合并的操作记录")) {
+			PlayCombinedRecord ();			
+		}
+		if (!string.IsNullOrEmpty (doingformula)) {
+			GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
+		}
+		if (!string.IsNullOrEmpty (userrecord)) {		
+			GUI.Label (new Rect (0f, 250f, Screen.width, 40f), "记录的玩家操作的公式：" + userrecord, GUIStyle.none);
+		}
+		if (!string.IsNullOrEmpty (combinedrecord)) {
+			GUI.Label (new Rect (0f, 300f, Screen.width, 40f), "合并后玩家操作：" + combinedrecord, GUIStyle.none);
+		}
 		Vector2 v2 = Vector2.zero;
 		// 二指或以上操作，并且没有判定为转动和运行公式
 		if (Input.touchCount > 1 && !rotatejudged && !flipjudged && !flipping && !rotating) {
 			v2 = Input.mousePosition;
 			StartCoroutine (FlipMagicBox (v2));
 		}
-//		GUILayout.Label ("鼠标位置：" + v2);
 	}
 
 	/*
 	// Update is called once per frame
 	void Update ()
 	{
-//		if (Input.GetKeyDown (KeyCode.A)) {
-//			StartCoroutine (SetFullColor ());
-//			print ("aaaaa");
-//		}
-//
-//		if (Input.GetKeyDown (KeyCode.Q)) {
-//			SetEditColor ();
-//			print ("QQQQQ");
-//		}
-//		if (Input.GetKeyDown (KeyCode.P)) {
-//			print ("PPPPP");
-//			FormulaLibrary ();
-//		}
-//		if (Input.GetKeyDown (KeyCode.W)) {
-//			CreatLevel (Random.Range (1, 8));
-//			print ("wwww");
-//		}
 		if (formularing || rotating) {
 			return;
 		}
-
-		#region For Test (getkeydown)
-
+		// 按键操作
 		if (Input.GetKeyDown (KeyCode.L)) {
 			if (Input.GetKey (KeyCode.LeftAlt)) {
 				DoLP2 ();
@@ -755,7 +805,7 @@ public class MyMagicCube : MonoBehaviour
 			DoZP2 ();
 			break;
 		}
-		print ("~~~~~~~~" + step);
+//		print ("~~~~~~~~" + step);
 		// 每走一步进行一次判断。
 		CheckAcomplished ();
 	}
@@ -1065,7 +1115,6 @@ public class MyMagicCube : MonoBehaviour
 			}
 		}
 //		#endif
-		print ("==========");
 
 		if (rotatejudged) {
 			rotating = true;
@@ -1222,7 +1271,7 @@ public class MyMagicCube : MonoBehaviour
 				}
 //				lastmousepos = Input.mousePosition;
 				lastmousepos = Input.GetTouch (0).position;
-				print ("rotating2");
+//				print ("rotating2");
 				yield return null;
 			}
 //			#endif
@@ -1300,7 +1349,6 @@ public class MyMagicCube : MonoBehaviour
 
 			rotating = false;
 		}
-		print ("==========4");
 		rotatejudged = false;
 	}
 
@@ -1437,9 +1485,9 @@ public class MyMagicCube : MonoBehaviour
 	#endregion
 
 
-	#region DoRotate Animate
+	#region DoRotate Animate 选择操作的魔方块组，然后进行旋转操作
 
-	// 这里是旋转魔方的动画
+	// 这里是旋转魔方的动画，这个是操作指定的块的方法，所以应该可以适用于其他阶魔方
 	IEnumerator RotateAnimation (List<SingleCube> olist, Vector3 point, Vector3 axis, float angle, float length)
 	{
 		rotating = true;
@@ -1479,7 +1527,8 @@ public class MyMagicCube : MonoBehaviour
 		rotating = false;
 	}
 
-	// Find operate suit. 找到当前操作的块儿组，这个需要修改来适应多阶魔方
+	// Find operate suit. 找到当前操作的块儿组，这个需要修改来适应多阶魔方，
+	// 为魔方添加各个位置的参数的话，可能比较方便的统计每个操作组里面都有哪些，需要以后修改尝试
 	void GetOperateSuit (OperateSuit str)
 	{
 		switch (str) {
@@ -1569,13 +1618,15 @@ public class MyMagicCube : MonoBehaviour
 	#region Edit Formular
 
 	public string formula = "";
-	public Text formulatext;
 
+	//the formula is doing; 正在执行的公式
+	public string doingformula = "";
+	// 两步之间的间隔时间
 	public float spacetime = 1f;
 
 	OperateStep GetString2Step (string val)
 	{
-		OperateStep step = OperateStep.L;
+		OperateStep step = OperateStep.L;// 初始化L没任何意义
 		foreach (OperateStep s in MyMapPrefab.Step2StringMap.Keys) {
 			if (MyMapPrefab.Step2StringMap [s].Equals (val)) {
 				step = s;
@@ -1620,9 +1671,7 @@ public class MyMagicCube : MonoBehaviour
 				}
 			}
 		}
-		if (formulatext != null) {
-			formulatext.text = formula;
-		}
+
 	}
 
 	public void FormularDelete ()
@@ -1635,57 +1684,70 @@ public class MyMagicCube : MonoBehaviour
 				formula = "";
 			}
 		}
-		if (formulatext != null)
-			formulatext.text = formula;
 	}
 
 	// 执行公式
-	public void DoMyFormula ()
+	public void DoMyFormula (string fml)
 	{
-		StartCoroutine (DoFormula ());
+		StartCoroutine (DoFormula (fml));
 	}
 
-	IEnumerator DoFormula ()
+	IEnumerator DoFormula (string fml)
 	{
-		formularing = true;
-		List<string> mysteps = new List<string> ();
+		if (!string.IsNullOrEmpty (fml)) {
+			print ("zhixing gongshi :" + fml);
+			formularing = true;
+			doingformula = fml;
+			List<string> mysteps = new List<string> ();
 
-		string context = formula;
-		char[] charSeparator = { ',' };
-		string[] l = context.Split (charSeparator, System.StringSplitOptions.RemoveEmptyEntries);
-		mysteps.AddRange (l);
+			string context = fml;
+			char[] charSeparator = { ',' };
+			string[] l = context.Split (charSeparator, System.StringSplitOptions.RemoveEmptyEntries);
+			mysteps.AddRange (l);
 
-		while (!string.IsNullOrEmpty (formula) && mysteps.Count > 0) {
-			if (!rotating) {
-				// 等待1秒，如果是新手，应该多加等待
-				yield return new WaitForSeconds (spacetime);
-				// 找到map的第一个公式
-				OperateStep curstep = GetString2Step (mysteps [0]);
-				DoSingleStep (curstep);
+			while (!string.IsNullOrEmpty (fml) && mysteps.Count > 0) {
+				if (!rotating) {
+					// 等待1秒，如果是新手，应该多加等待
+					yield return new WaitForSeconds (spacetime);
+					// 找到map的第一个公式
+					OperateStep curstep = GetString2Step (mysteps [0]);
+					DoSingleStep (curstep);
 				
-				// 去掉公式的第一个操作字符串，生成剩下的公式字符串（适用于用户自己编写的公式）（盲拧）
-				if (mysteps.Count > 1) {
-					formula = formula.Remove (0, mysteps [0].Length + 1);
-				} else {
-					formula = formula.Remove (0, mysteps [0].Length);
+					// 去掉公式的第一个操作字符串，生成剩下的公式字符串（适用于用户自己编写的公式）（盲拧）
+					if (mysteps.Count > 1) {
+						fml = fml.Remove (0, mysteps [0].Length + 1);
+					} else {
+						fml = fml.Remove (0, mysteps [0].Length);
+					}
+					mysteps.Remove (mysteps [0]);
 				}
-				mysteps.Remove (mysteps [0]);
+				doingformula = fml;
+				yield return null;
 			}
-			if (formulatext != null)
-				formulatext.text = formula;
-			yield return null;
+			formularing = false;
 		}
-		formularing = false;
+		if (PlayerPrefs.HasKey ("SpaceTime")) {
+			spacetime = PlayerPrefs.GetFloat ("SpaceTime");
+		}
+		if (PlayerPrefs.HasKey ("AnimateTime")) {
+			singleanitime = PlayerPrefs.GetFloat ("AnimateTime");
+		}
+//		if (recordbrokenstate) {
+//			RecordMagicCubeState ();
+//		}
+		print ("state done");
+		yield return null;
 	}
 
 
 	// creat broken formular and the recover formular 适用于自动打乱
-	private string astr = "";
-	private string bstr = "";
+	private string brokenformular = "";
+	private string recoverformular = "";
 
 	public void CreatBrokeFormula ()
 	{
-		int lf = Random.Range (1, 21);// length of formula
+		int lf = Random.Range (6, 21);// length of formula
+//		int lf = Random.Range (1, 21);// length of formula
 		int si = -1;// 记录当前公式的序号
 		string fb = ""; // 生成的打乱公式
 		string fr = ""; // 生成的还原公式
@@ -1716,12 +1778,13 @@ public class MyMagicCube : MonoBehaviour
 				i++;
 			}
 		}
-		astr = fb;
-		bstr = fr;
+		brokenformular = fb;
+		recoverformular = fr;
 	}
 
 	// 记录用户的所有操作步骤。
 	private string userrecord;
+	private string combinedrecord;
 
 	void RecordUserOperate (string ustep)
 	{
@@ -1736,11 +1799,63 @@ public class MyMagicCube : MonoBehaviour
 	void CleanUserOperate ()
 	{
 		userrecord = "";
+		combinedrecord = "";
 	}
 
 	void CombineTheUserOperate ()
 	{
-		
+		if (string.IsNullOrEmpty (userrecord)) {
+			return;
+		}
+
+		char[] charSeparator = { ',' };
+		string[] l = userrecord.Split (charSeparator, System.StringSplitOptions.RemoveEmptyEntries);
+		List<string> temp = new List<string> ();
+		for (int i = 0; i < l.Length; i++) {
+			temp.Add (l [i]);
+		}
+		// 找到公式一致的先合并，然后在重新判断，但是第一次就合并了之后怎么办？重新开始，还是继续合并？
+		if (temp.Count > 1) {
+			bool combined = false;
+			while (!combined) {
+				combined = true;
+				for (int i = temp.Count - 1; i > 0; i--) {
+					int cs = (int)GetString2Step (temp [i]);
+					int ps = (int)GetString2Step (temp [i - 1]);
+					if ((cs / 3) == (ps / 3)) {
+//						print (i + "去除" + temp [i] + "和" + temp [i - 1]);
+						temp.RemoveAt (i);
+						temp.RemoveAt (i - 1);
+						if ((cs % 3) == (ps % 3)) {
+							if (cs % 3 == 0) { // 相加等于2
+								temp.Insert (i - 1, MyMapPrefab.Step2StringMap [(OperateStep)(cs + 1)]);
+//								print ("1  将其合并为" + temp [i - 1]);
+							} else if (cs % 3 == 2) {
+								temp.Insert (i - 1, MyMapPrefab.Step2StringMap [(OperateStep)(cs - 1)]);
+//								print ("2  将其合并为" + temp [i - 1]);
+							}
+						} else {
+							if (cs % 3 == 1) {
+								temp.Insert (i - 1, MyMapPrefab.Step2StringMap [(OperateStep)(cs * 2 - ps)]);
+//								print ("3  将其合并为" + temp [i - 1]);
+							} else if (ps % 3 == 1) {
+								temp.Insert (i - 1, MyMapPrefab.Step2StringMap [(OperateStep)(ps * 2 - cs)]);
+//								print ("4  将其合并为" + temp [i - 1]);
+							}
+						}
+						combined = false;
+						break;
+					}
+				}
+			}
+		}
+		combinedrecord = "";
+		for (int i = 0; i < temp.Count; i++) {
+			combinedrecord += temp [i] + ",";
+		}
+		if (!string.IsNullOrEmpty (combinedrecord)) {
+			combinedrecord = combinedrecord.Remove (combinedrecord.Length - 1);
+		}
 	}
 
 	#endregion
@@ -1770,6 +1885,26 @@ public class MyMagicCube : MonoBehaviour
 			// TODO：完成之后是重新开始还是再来一次等等，如果是任务关卡又该怎么样……
 
 		}
+	}
+
+	#endregion
+
+	#region 强制还原
+
+	// 将魔方的所有块都放在初始化的状态，以便后续应用存储的面片数据来初始化魔方状态
+	void ToOriginalPos ()
+	{
+		for (int i = 0; i < Cubes.Length; i++) {
+			Cubes [i].transform.position = new 
+				Vector3 ((i % 9) / 3 - 1, i / 9 - 1, i % 3 - 1) * CubeSize;
+			Cubes [i].transform.eulerAngles = Vector3.zero;
+		}
+	}
+
+	// 将魔方的所有块都放在初始化的状态，以便后续应用存储的面片数据来初始化魔方状态
+	void ToOriginalColor ()
+	{
+		SetFullColor ();
 	}
 
 	#endregion
@@ -1864,8 +1999,8 @@ public class MyMagicCube : MonoBehaviour
 			break;
 		}
 		CreatBrokeFormula ();
-		formula = astr;
-		DoMyFormula ();
+		formula = brokenformular;
+		DoMyFormula (formula);
 	}
 
 	void SingleRecoverFomularExercise ()
@@ -1873,19 +2008,7 @@ public class MyMagicCube : MonoBehaviour
 		
 	}
 
-	#region 强制还原
 
-	// 将魔方的所有块都放在初始化的状态，以便后续应用存储的面片数据来初始化魔方状态
-	void ToOriginalPos ()
-	{
-		for (int i = 0; i < Cubes.Length; i++) {
-			Cubes [i].transform.position = new 
-				Vector3 ((i % 9) / 3 - 1, i / 9 - 1, i % 3 - 1) * CubeSize;
-			Cubes [i].transform.eulerAngles = Vector3.zero;
-		}
-	}
-
-	#endregion
 
 	// 每个公式都有自己的作用场景，需要事先设定好对应的公式和场景
 	// 需要添加或修改成对应面颜色的模式，这样就可以实现部分的随机效果和各种记录初始状态然后进行多次尝试的情况，比较适于盲拧

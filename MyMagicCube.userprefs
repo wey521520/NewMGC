@@ -1,13 +1,17 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/MenuPage/MyUIControler.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/magicbox/NewScript/MyMagicCube.cs">
     <Files>
-      <File FileName="Assets/magicbox/NewScript/MyMagicCube.cs" Line="17" Column="31" />
+      <File FileName="Assets/MenuPage/MyUIControler.cs" Line="35" Column="21" />
+      <File FileName="Assets/magicbox/NewScript/MyMagicCube.cs" Line="1827" Column="1" />
       <File FileName="Assets/MenuPage/KeyBoard.cs" Line="1" Column="1" />
-      <File FileName="Assets/Plugins/Global.cs" Line="32" Column="12" />
-      <File FileName="Assets/magicbox/NewScript/SingleCube.cs" Line="23" Column="3" />
-      <File FileName="Assets/MenuPage/MyUIControler.cs" Line="27" Column="3" />
-      <File FileName="Assets/magicbox/NewScript/CubeFace.cs" Line="11" Column="25" />
+      <File FileName="Assets/Plugins/Global.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/SingleCube.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/CubeFace.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/CameraControler.cs" Line="37" Column="49" />
+      <File FileName="Assets/magicbox/Script/ButtonClick.cs" Line="31" Column="13" />
+      <File FileName="Assets/magicbox/Script/SingleKey.cs" Line="22" Column="13" />
+      <File FileName="Assets/magicbox/NewScript/MyMapPrefab.cs" Line="26" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
