@@ -134,11 +134,11 @@ public class MyMagicCube : MonoBehaviour
 			GameObject obj = Instantiate (CubePrefab);
 			obj.transform.SetParent (this.transform);
 			obj.transform.localScale = Vector3.one * CubeSize * 0.99f * 3f / CubeClass;
+//			obj.transform.localScale = Vector3.one * CubeSize * 0.9f * 3f / CubeClass;
 			obj.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * ((i % numInClass) / CubeClass),
 				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i / numInClass),
 				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i % CubeClass)) * CubeSize;
 			obj.name = "C_" + i.ToString ("D2") + "_" + obj.transform.position;
-//			print (obj.name + obj.transform.position);
 
 			SingleCube cube = obj.GetComponent <SingleCube> ();
 			Cubes [i] = cube;
@@ -151,64 +151,20 @@ public class MyMagicCube : MonoBehaviour
 			    i == numInCube - 1 || i == numInCube - CubeClass ||
 			    i == numInCube - numInClass + CubeClass - 1 || i == numInCube - numInClass) {
 				cube.cubestyle = CubeStyle.Corner;
-//				print (i + "是顶点");
 			} else if (i > numInClass && i < numInCube - numInClass && i % numInClass > CubeClass && i % numInClass < numInClass - CubeClass &&
 			           i % numInClass % CubeClass != 0 && i % numInClass % CubeClass != CubeClass - 1) {
 				cube.cubestyle = CubeStyle.None;
-//				print (i + "是内点");
 			} else if ((i > CubeClass && i < numInClass - CubeClass && i % CubeClass != 0 && i % CubeClass != CubeClass - 1) ||
 			           (i < numInCube - CubeClass && i > numInCube - numInClass + CubeClass && i % CubeClass != 0 && i % CubeClass != CubeClass - 1) ||
 			           i > numInClass && i < numInCube - numInClass && (((i % numInClass < CubeClass || i % numInClass > numInClass - CubeClass) &&
 			           i % CubeClass != 0 && i % CubeClass != CubeClass - 1) || (i % numInClass >= CubeClass && i % numInClass < numInClass - CubeClass &&
 			           (i % CubeClass == 0 || i % CubeClass == CubeClass - 1)))) {
 				cube.cubestyle = CubeStyle.Face;
-//				print (i + "是面");
 			} else {
 				cube.cubestyle = CubeStyle.Edge;
-//				print (i + "是棱");
 			}
-			/*
-			switch (i) {
-			case 0:
-			case 2:
-			case 6:
-			case 8:
-			case 18:
-			case 20:
-			case 24:
-			case 26:
-				cube.cubestyle = CubeStyle.Corner;
-				break;
-			case 13:
-				cube.cubestyle = CubeStyle.None;
-				break;
-			case 4:
-			case 10:
-			case 12:
-			case 14:
-			case 16:
-			case 22:
-				cube.cubestyle = CubeStyle.Face;
-				break;
-			case 1:
-			case 3:
-			case 5:
-			case 7:
-			case 9:
-			case 11:
-			case 15:
-			case 17:
-			case 19:
-			case 21:
-			case 23:
-			case 25:
-				cube.cubestyle = CubeStyle.Edge;
-				break;
-			}
-*/
 		}
 
-//		cubefaces = new CubeFace[54];
 		cubefaces = new CubeFace[6 * numInClass];
 		for (int i = 0; i < cubefaces.Length; i++) {
 			GameObject objface = Instantiate (FacePrefab);
@@ -305,6 +261,7 @@ public class MyMagicCube : MonoBehaviour
 			objface.name = "Face" + i.ToString ("D2");
 			cubefaces [i].cube = Cubes [l];
 			cubefaces [i].operater = this;
+//			cubefaces [i].gameObject.SetActive (false);
 		}
 		RecordMagicCubeState ();
 	}
@@ -505,6 +462,7 @@ public class MyMagicCube : MonoBehaviour
 		spacetime = 0.2f;
 		DoMyFormula (userrecord);
 	}
+
 	// 运行记录的玩家的公式
 	public void PlayCombinedRecord ()
 	{
@@ -514,44 +472,81 @@ public class MyMagicCube : MonoBehaviour
 		DoMyFormula (combinedrecord);
 	}
 
+	// 运行玩家输入的公式
+	public void PlayUserEditFormula ()
+	{
+		singleanitime = 0.4f;
+		spacetime = 0.2f;
+		DoMyFormula (formula);
+	}
+
 	#endregion
 
 
 	// for test
 	void OnGUI ()
 	{
-		if (GUI.Button (new Rect (150f, 0f, 100f, 40f), "自动打乱")) {
-			AutoBroken ();		
-		}
-		if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
-			PlayUserRecord ();		
-		}
-		if (GUI.Button (new Rect (150f, 50f, 100f, 40f), "再来一次")) {
-			OnceAgain ();			
-		}
-		if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除用户操作记录")) {
-			CleanUserOperate ();
-		}
-		if (GUI.Button (new Rect (150f, 100f, 100f, 40f), "强制还原")) {
-			ForceRecover ();			
-		}
-		if (GUI.Button (new Rect (300f, 100f, 100f, 40f), "合并用户操作")) {
-			CombineTheUserOperate ();			
-		}
-		if (GUI.Button (new Rect (150f, 150f, 100f, 40f), "自动还原")) {
-			AutoRecover ();			
-		}
-		if (GUI.Button (new Rect (300f, 150f, 100f, 40f), "合并的操作记录")) {
-			PlayCombinedRecord ();			
-		}
-		if (!string.IsNullOrEmpty (doingformula)) {
-			GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
-		}
-		if (!string.IsNullOrEmpty (userrecord)) {		
-			GUI.Label (new Rect (0f, 250f, Screen.width, 40f), "记录的玩家操作的公式：" + userrecord, GUIStyle.none);
-		}
-		if (!string.IsNullOrEmpty (combinedrecord)) {
-			GUI.Label (new Rect (0f, 300f, Screen.width, 40f), "合并后玩家操作：" + combinedrecord, GUIStyle.none);
+		if (Global.State.Equals (Global.GameState.Operate)) {
+			if (GUI.Button (new Rect (150f, 0f, 100f, 40f), "自动打乱")) {
+				AutoBroken ();		
+			}
+			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
+				PlayUserRecord ();		
+			}
+			if (GUI.Button (new Rect (150f, 50f, 100f, 40f), "再来一次")) {
+				OnceAgain ();			
+			}
+			if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除用户操作记录")) {
+				CleanUserOperate ();
+			}
+			if (GUI.Button (new Rect (150f, 100f, 100f, 40f), "强制还原")) {
+				ForceRecover ();			
+			}
+			if (GUI.Button (new Rect (300f, 100f, 100f, 40f), "合并用户操作")) {
+				CombineTheUserOperate ();			
+			}
+			if (GUI.Button (new Rect (150f, 150f, 100f, 40f), "自动还原")) {
+				AutoRecover ();			
+			}
+			if (GUI.Button (new Rect (300f, 150f, 100f, 40f), "合并的操作记录")) {
+				PlayCombinedRecord ();			
+			}
+			if (!string.IsNullOrEmpty (doingformula)) {
+				GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
+			}
+			if (!string.IsNullOrEmpty (userrecord)) {		
+				GUI.Label (new Rect (0f, 250f, Screen.width, 40f), "记录的玩家操作的公式：" + userrecord, GUIStyle.none);
+			}
+			if (!string.IsNullOrEmpty (combinedrecord)) {
+				GUI.Label (new Rect (0f, 300f, Screen.width, 40f), "合并后玩家操作：" + combinedrecord, GUIStyle.none);
+			}
+		} else if (Global.State.Equals (Global.GameState.Formular)) {
+			if (GUI.Button (new Rect (150f, 0f, 100f, 40f), "自动打乱")) {
+				AutoBroken ();		
+			}
+			if (GUI.Button (new Rect (150f, 50f, 100f, 40f), "再来一次")) {
+				OnceAgain ();			
+			}
+			if (GUI.Button (new Rect (150f, 150f, 100f, 40f), "自动还原")) {
+				AutoRecover ();			
+			}
+			if (GUI.Button (new Rect (150f, 100f, 100f, 40f), "强制还原")) {
+				ForceRecover ();			
+			}
+			if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除录入的公式")) {
+				formula = "";
+			}
+			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
+				PlayUserEditFormula ();		
+			}
+			if (!string.IsNullOrEmpty (formula)) {
+				GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在编辑的公式为" + formula);	
+				print (formula);
+			}
+			if (!string.IsNullOrEmpty (doingformula)) {
+				GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
+			}
+
 		}
 		Vector2 v2 = Vector2.zero;
 		// 二指或以上操作，并且没有判定为转动和运行公式
@@ -561,133 +556,337 @@ public class MyMagicCube : MonoBehaviour
 		}
 	}
 
-	/*
-	// Update is called once per frame
+
 	void Update ()
 	{
 		if (formularing || rotating) {
 			return;
 		}
-		// 按键操作
-		if (Input.GetKeyDown (KeyCode.L)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoLP2 ();
-				FormularAdd (OperateStep.L2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoLN ();
-				FormularAdd (OperateStep.L0);
-			} else {
-				DoLP ();
-				FormularAdd (OperateStep.L);
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			// 按键操作
+			if (Input.GetKeyDown (KeyCode.L)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoLP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoLN ();
+				} else {
+					DoLP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.R)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoRP2 ();
-				FormularAdd (OperateStep.R2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoRN ();
-				FormularAdd (OperateStep.R0);
-			} else {
-				DoRP ();
-				FormularAdd (OperateStep.R);
+			if (Input.GetKeyDown (KeyCode.R)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoRP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoRN ();
+				} else {
+					DoRP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.U)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoUP2 ();
-				FormularAdd (OperateStep.U2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoUN ();
-				FormularAdd (OperateStep.U0);
-			} else {
-				DoUP ();
-				FormularAdd (OperateStep.U);
+			if (Input.GetKeyDown (KeyCode.U)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoUP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoUN ();
+				} else {
+					DoUP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.D)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoDP2 ();
-				FormularAdd (OperateStep.D2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoDN ();
-				FormularAdd (OperateStep.D0);
-			} else {
-				DoDP ();
-				FormularAdd (OperateStep.D);
+			if (Input.GetKeyDown (KeyCode.D)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoDP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoDN ();
+				} else {
+					DoDP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.F)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoFP2 ();
-				FormularAdd (OperateStep.F2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoFN ();
-				FormularAdd (OperateStep.F0);
-			} else {
-				DoFP ();
-				FormularAdd (OperateStep.F);
+			if (Input.GetKeyDown (KeyCode.F)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoFP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoFN ();
+				} else {
+					DoFP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.B)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoBP2 ();
-				FormularAdd (OperateStep.B2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoBN ();
-				FormularAdd (OperateStep.B0);
-			} else {
-				DoBP ();
-				FormularAdd (OperateStep.B);
+			if (Input.GetKeyDown (KeyCode.B)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoBP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoBN ();
+				} else {
+					DoBP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.X)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoXP2 ();
-				FormularAdd (OperateStep.X2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoXN ();
-				FormularAdd (OperateStep.X0);
-			} else {
-				DoXP ();
-				FormularAdd (OperateStep.X);
+			if (Input.GetKeyDown (KeyCode.X)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoXP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoXN ();
+				} else {
+					DoXP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.Y)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoYP2 ();
-				FormularAdd (OperateStep.Y2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoYN ();
-				FormularAdd (OperateStep.Y0);
-			} else {
-				DoYP ();
-				FormularAdd (OperateStep.Y);
+			if (Input.GetKeyDown (KeyCode.Y)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoYP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoYN ();
+				} else {
+					DoYP ();
+				}
 			}
-		}
 
-		if (Input.GetKeyDown (KeyCode.Z)) {
-			if (Input.GetKey (KeyCode.LeftAlt)) {
-				DoZP2 ();
-				FormularAdd (OperateStep.Z2);
-			} else if (Input.GetKey (KeyCode.LeftShift)) {
-				DoZN ();
-				FormularAdd (OperateStep.Z0);
-			} else {
-				DoZP ();
-				FormularAdd (OperateStep.Z);
+			if (Input.GetKeyDown (KeyCode.Z)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					DoZP2 ();
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					DoZN ();
+				} else {
+					DoZP ();
+				}
+			}
+		} else if (Global.State == Global.GameState.Formular) {
+
+			// 按键操作
+			if (Input.GetKeyDown (KeyCode.L)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.L2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.L0);
+				} else {
+					FormularAdd (OperateStep.L);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.R)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.R2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.R0);
+				} else {
+					FormularAdd (OperateStep.R);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.U)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.U2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.U0);
+				} else {
+					FormularAdd (OperateStep.U);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.D)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.D2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.D0);
+				} else {
+					FormularAdd (OperateStep.D);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.F)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.F2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.F0);
+				} else {
+					FormularAdd (OperateStep.F);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.B)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.B2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.B0);
+				} else {
+					FormularAdd (OperateStep.B);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.X)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.X2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.X0);
+				} else {
+					FormularAdd (OperateStep.X);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.Y)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.Y2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.Y0);
+				} else {
+					FormularAdd (OperateStep.Y);
+				}
+			}
+
+			if (Input.GetKeyDown (KeyCode.Z)) {
+				if (Input.GetKey (KeyCode.LeftAlt)) {
+					FormularAdd (OperateStep.Z2);
+				} else if (Input.GetKey (KeyCode.LeftShift)) {
+					FormularAdd (OperateStep.Z0);
+				} else {
+					FormularAdd (OperateStep.Z);
+				}
 			}
 		}
-		#endregion
 	}
-		*/
+	/*
+	void FormularKeyInput ()
+	{
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("R");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.R);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("R2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.R2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("R'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.R0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("L");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.L);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("L2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.L2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("L'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.L0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("U");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.U);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("U2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.U2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("U'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.U0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("D");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.D);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("D2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.D2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("D'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.D0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("F");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.F);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("F2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.F2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("F'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.F0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("B");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.B);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("B2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.B2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("B'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.B0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("X");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.X);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("X2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.X2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("X'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.X0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Y");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Y);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Y2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Y2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Y'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Y0);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Z");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Z);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Z2");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Z2);
+		}
+		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
+			RecordUserOperate ("Z'");
+		} else if (Global.State == Global.GameState.Formular) {
+			FormularAdd (OperateStep.Z0);
+		}
+	}
+*/
 
 	#region Control
 
@@ -812,30 +1011,32 @@ public class MyMagicCube : MonoBehaviour
 
 	#region SlngleStep 标准单步操作
 
+	// 使只有公式操作的时候才会发生编辑公式功能，其他时候就是单纯的记录公式
+
 	#region L L2 L'
 
 	//L
 	public void DoLP ()
 	{
+		RecordUserOperate ("L");
 		GetOperateSuit (OperateSuit.Left);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.forward, 90f, singleanitime));
-		FormularAdd (OperateStep.L);
 	}
 
 	//L2
 	public void DoLP2 ()
 	{
+		RecordUserOperate ("L2");
 		GetOperateSuit (OperateSuit.Left);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.forward, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.L2);
 	}
 
 	//L‘
 	public void DoLN ()
 	{
+		RecordUserOperate ("L'");
 		GetOperateSuit (OperateSuit.Left);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.forward, -90f, singleanitime));
-		FormularAdd (OperateStep.L0);
 	}
 
 	#endregion
@@ -845,25 +1046,25 @@ public class MyMagicCube : MonoBehaviour
 	//R
 	public void DoRP ()
 	{
+		RecordUserOperate ("R");
 		GetOperateSuit (OperateSuit.Right);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, 90f, singleanitime));
-		FormularAdd (OperateStep.R);
 	}
 
 	//R2
 	public void DoRP2 ()
 	{
+		RecordUserOperate ("R2");
 		GetOperateSuit (OperateSuit.Right);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.R2);
 	}
 
 	//R'
 	public void DoRN ()
 	{
+		RecordUserOperate ("R'");
 		GetOperateSuit (OperateSuit.Right);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, -90f, singleanitime));
-		FormularAdd (OperateStep.R0);
 	}
 
 	#endregion
@@ -873,109 +1074,112 @@ public class MyMagicCube : MonoBehaviour
 	//U
 	public void DoUP ()
 	{
+		RecordUserOperate ("U");
 		GetOperateSuit (OperateSuit.Up);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, 90f, singleanitime));
-		FormularAdd (OperateStep.U);
 	}
 
 	//U
 	public void DoUP2 ()
 	{
+		RecordUserOperate ("U2");
 		GetOperateSuit (OperateSuit.Up);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.U2);
 	}
 
 	//U'
 	public void DoUN ()
 	{
+		RecordUserOperate ("U'");
 		GetOperateSuit (OperateSuit.Up);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, -90f, singleanitime));
-		FormularAdd (OperateStep.U0);
 	}
 
 	#endregion
+
 
 	#region D D2 D'
 
 	//D
 	public void DoDP ()
 	{
+		RecordUserOperate ("D");
 		GetOperateSuit (OperateSuit.Down);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.down, 90f, singleanitime));
-		FormularAdd (OperateStep.D);
 	}
 
 	//D2
 	public void DoDP2 ()
 	{
+		RecordUserOperate ("D2");
 		GetOperateSuit (OperateSuit.Down);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.down, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.D2);
 	}
 
 	//D'
 	public void DoDN ()
 	{
+		RecordUserOperate ("D'");
 		GetOperateSuit (OperateSuit.Down);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.down, -90f, singleanitime));
-		FormularAdd (OperateStep.D0);
 	}
 
 	#endregion
 
 	#region F F2 F'
 
+
 	//F
 	public void DoFP ()
 	{
+		RecordUserOperate ("F");
 		GetOperateSuit (OperateSuit.Front);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, 90f, singleanitime));
-		FormularAdd (OperateStep.F);
 	}
 
 	//F
 	public void DoFP2 ()
 	{
+		RecordUserOperate ("F2");
 		GetOperateSuit (OperateSuit.Front);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.F2);
 	}
 
 	//F'
 	public void DoFN ()
 	{
+		RecordUserOperate ("F'");
 		GetOperateSuit (OperateSuit.Front);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, -90f, singleanitime));
-		FormularAdd (OperateStep.F0);
 	}
 
 	#endregion
 
 	#region B B2 B'
 
+
 	//B
 	public void DoBP ()
 	{
+		RecordUserOperate ("B");
 		GetOperateSuit (OperateSuit.Back);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.right, 90f, singleanitime));
-		FormularAdd (OperateStep.B);
 	}
 
 	//B
 	public void DoBP2 ()
 	{
+		RecordUserOperate ("B2");
 		GetOperateSuit (OperateSuit.Back);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.right, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.B2);
 	}
 
 	//B'
 	public void DoBN ()
 	{
+		RecordUserOperate ("B'");
 		GetOperateSuit (OperateSuit.Back);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.right, -90f, singleanitime));
-		FormularAdd (OperateStep.B0);
 	}
 
 	#endregion
@@ -989,81 +1193,83 @@ public class MyMagicCube : MonoBehaviour
 	//X
 	public void DoXP ()
 	{
+		RecordUserOperate ("X");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, 90f, singleanitime));
-		FormularAdd (OperateStep.X);
 	}
 
 	//X2
 	public void DoXP2 ()
 	{
+		RecordUserOperate ("X2");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.X2);
 	}
 
 	//X'
 	public void DoXN ()
 	{
+		RecordUserOperate ("X'");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.back, -90f, singleanitime));
-		FormularAdd (OperateStep.X0);
 	}
 
 	#endregion
 
 	#region Y Y2 Y'
 
+
 	//Y
 	void DoYP ()
 	{
+		RecordUserOperate ("Y");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, 90f, singleanitime));
-		FormularAdd (OperateStep.Y);
 	}
 
 	//Y2
 	void DoYP2 ()
 	{
+		RecordUserOperate ("Y2");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.Y2);
 	}
 
 	//Y'
 	void DoYN ()
 	{
+		RecordUserOperate ("Y'");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.up, -90f, singleanitime));
-		FormularAdd (OperateStep.Y0);
 	}
 
 	#endregion
 
 	#region Z Z2 Z'
 
+
 	//Z
 	void DoZP ()
 	{
+		RecordUserOperate ("Z");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, 90f, singleanitime));
-		FormularAdd (OperateStep.Z);
 	}
 
 	//Z2
 	void DoZP2 ()
 	{
+		RecordUserOperate ("Z2");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, 180f, singleanitime * 2f));
-		FormularAdd (OperateStep.Z2);
 	}
 
 	//Z'
 	void DoZN ()
 	{
+		RecordUserOperate ("Z'");
 		GetOperateSuit (OperateSuit.Entriety);
 		StartCoroutine (RotateAnimation (operatelist, Vector3.zero, Vector3.left, -90f, singleanitime));
-		FormularAdd (OperateStep.Z0);
 	}
 
 	#endregion
@@ -1090,19 +1296,6 @@ public class MyMagicCube : MonoBehaviour
 		Vector2 startpos = Vector2.zero;
 		Vector2 curpos = Vector2.zero;
 
-//		Vector2 startpos = Input.mousePosition;
-//		Vector2 curpos = Input.mousePosition;
-//		#if UNITY_EDITOR
-//		while (Input.GetMouseButton (0) && !rotatejudged) {
-//			curpos = Input.mousePosition;
-//			if (Vector2.Distance (curpos, startpos) >= 10f) {
-//				rotatejudged = true;
-//			}
-//			yield return null;
-//		}
-//		#endif
-
-//		#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
 		if (Input.touchCount > 0) {
 			startpos = Input.GetTouch (0).position;
 			curpos = Input.GetTouch (0).position;
@@ -1114,14 +1307,12 @@ public class MyMagicCube : MonoBehaviour
 				yield return null;
 			}
 		}
-//		#endif
 
 		if (rotatejudged) {
 			rotating = true;
 			
 			// 记录转动的角度
 			float rollangle = 0f;
-//			Vector2 lastmousepos = Input.mousePosition;
 			Vector2 lastmousepos = Vector2.zero;
 			if (Input.touchCount > 0) {
 				lastmousepos = Input.GetTouch (0).position;
@@ -1230,31 +1421,7 @@ public class MyMagicCube : MonoBehaviour
 				break;
 			}
 
-//			#if UNITY_EDITOR
-//			while (Input.GetMouseButton (0)) {
-//				offset = new Vector2 (Input.mousePosition.x - lastmousepos.x, Input.mousePosition.y - lastmousepos.y);
-//				// 根据位置和滑动的方向来对魔方对应的层进行操作
-//				if (suit.Equals (1)) {
-//					stepangle = offset.y * rlength;
-//				} else if (suit.Equals (2)) {
-//					stepangle = (offset.x * 0.86f + offset.y * 0.25f) * rlength;
-//				} else if (suit.Equals (3)) {
-//					stepangle = (offset.x * 0.86f - offset.y * 0.25f) * rlength;
-//				}
-//
-//				rollangle += stepangle;
-//				foreach (SingleCube b in operatelist) {
-//					b.transform.RotateAround (Vector3.zero, direction, stepangle);
-//				}
-//				lastmousepos = Input.mousePosition;
-//				print ("rotating1");
-//				yield return null;
-//			}
-//			#endif
-
-//			#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
 			while (Input.touchCount > 0 && Input.GetTouch (0).phase != TouchPhase.Ended) {
-//				offset = new Vector2 (Input.mousePosition.x - lastmousepos.x, Input.mousePosition.y - lastmousepos.y);
 				offset = new Vector2 (Input.GetTouch (0).position.x - lastmousepos.x, Input.GetTouch (0).position.y - lastmousepos.y);
 				// 根据位置和滑动的方向来对魔方对应的层进行操作
 				if (suit.Equals (1)) {
@@ -1269,12 +1436,9 @@ public class MyMagicCube : MonoBehaviour
 				foreach (SingleCube b in operatelist) {
 					b.transform.RotateAround (Vector3.zero, direction, stepangle);
 				}
-//				lastmousepos = Input.mousePosition;
 				lastmousepos = Input.GetTouch (0).position;
-//				print ("rotating2");
 				yield return null;
 			}
-//			#endif
 
 			float targetangle = 0f;
 			int manstep = 0;
@@ -1308,9 +1472,7 @@ public class MyMagicCube : MonoBehaviour
 			float offsetangle = targetangle - rollangle;
 
 			float speed = 90f / singleanitime;
-			//		bool toupper = true;
 			if (offsetangle < 0) {
-				//			toupper = false;
 				speed *= -1f;
 			}
 
@@ -1326,7 +1488,6 @@ public class MyMagicCube : MonoBehaviour
 				if (Mathf.Abs (curoffsetangle) > Mathf.Abs (offsetangle)) {
 					curoffsetangle = offsetangle;
 					finished = true;
-					//print ("Finished!!!!!!!");
 				}
 				truthoffsetangle = curoffsetangle - lastoffsetangle;
 				foreach (SingleCube b in operatelist) {
@@ -1636,6 +1797,7 @@ public class MyMagicCube : MonoBehaviour
 		return step;
 	}
 
+	//  这个做的是针对操作过程中的记录一步一步加上去的。用起来有些不方便
 	public void FormularAdd (OperateStep onestep)
 	{
 		if (MyMapPrefab.Step2StringMap.ContainsKey (onestep)) {

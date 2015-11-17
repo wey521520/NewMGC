@@ -33,7 +33,7 @@ public class Global : MonoBehaviour
 		Setting,
 	}
 
-	private static GameState state = GameState.Operate;
+	public static GameState state = GameState.Formular;
 
 	public static GameState State {
 		set{ state = value; }
@@ -49,7 +49,7 @@ public class Global : MonoBehaviour
 		SmallChamfer
 	}
 
-	public static CubeStyle cubestyle = CubeStyle.BigFillet;
+	public static CubeStyle cubestyle = CubeStyle.SmallFillet;
 
 
 
@@ -126,14 +126,6 @@ public class Global : MonoBehaviour
 				}
 			}
 		}
-
-
-
-
-
-
-
-
 
 
 
