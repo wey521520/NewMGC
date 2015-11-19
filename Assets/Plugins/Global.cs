@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using LitJson;
 using System;
 
-//using UnityEngine.iOS;
 using System.Text.RegularExpressions;
 using UnityEngine.iOS;
 
@@ -33,7 +32,7 @@ public class Global : MonoBehaviour
 		Setting,
 	}
 
-	public static GameState state = GameState.Formular;
+	public static GameState state = GameState.Learn;
 
 	public static GameState State {
 		set{ state = value; }
@@ -126,6 +125,8 @@ public class Global : MonoBehaviour
 				}
 			}
 		}
+
+
 
 
 

@@ -2,16 +2,17 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/magicbox/NewScript/MyMagicCube.cs">
     <Files>
-      <File FileName="Assets/magicbox/NewScript/MyMagicCube.cs" Line="544" Column="1" />
-      <File FileName="Assets/Plugins/Global.cs" Line="35" Column="2" />
-      <File FileName="Assets/MenuPage/MyUIControler.cs" Line="1" Column="1" />
-      <File FileName="Assets/MenuPage/KeyBoard.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/MyMagicCube.cs" Line="1759" Column="1" />
+      <File FileName="Assets/Plugins/Global.cs" Line="35" Column="49" />
+      <File FileName="Assets/MenuPage/MyUIControler.cs" Line="12" Column="30" />
+      <File FileName="Assets/MenuPage/KeyBoard.cs" Line="12" Column="2" />
       <File FileName="Assets/magicbox/NewScript/SingleCube.cs" Line="1" Column="1" />
-      <File FileName="Assets/magicbox/NewScript/CubeFace.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/CubeFace.cs" Line="73" Column="15" />
       <File FileName="Assets/magicbox/NewScript/CameraControler.cs" Line="1" Column="1" />
       <File FileName="Assets/magicbox/Script/ButtonClick.cs" Line="1" Column="1" />
       <File FileName="Assets/magicbox/Script/SingleKey.cs" Line="1" Column="1" />
-      <File FileName="Assets/magicbox/NewScript/MyMapPrefab.cs" Line="1" Column="1" />
+      <File FileName="Assets/magicbox/NewScript/MyMapPrefab.cs" Line="7" Column="2" />
+      <File FileName="Assets/magicbox/Script/MyEnum.cs" Line="64" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

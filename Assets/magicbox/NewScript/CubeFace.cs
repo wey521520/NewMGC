@@ -66,6 +66,13 @@ public class CubeFace : MonoBehaviour
 		cube.SetColor (this.gameObject);
 	}
 
+	// 用户自定义编辑颜色（添加颜色之后应该同步修改块儿的记录）（编辑颜色要判断颜色的个数是否过多和组合是否重复）
+	public void SetMapColor (MagicColor c)
+	{
+		this.GetComponent <MeshRenderer> ().material.color = MyMapPrefab.ColorMap [c];
+		mycolor = c;
+	}
+
 	public void UpdateFaceStyle ()
 	{
 		Vector3 pos = transform.position;

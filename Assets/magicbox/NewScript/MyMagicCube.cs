@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Reflection;
+using LitJson;
 
 public class MyMagicCube : MonoBehaviour
 {
@@ -72,6 +73,9 @@ public class MyMagicCube : MonoBehaviour
 
 	public Dictionary<CubeFaceStyle,MagicColor> accomplishstate = new Dictionary<CubeFaceStyle, MagicColor> ();
 
+	private List<JsonData> FormulaLibraryData = new List<JsonData> ();
+	//	{"facemap":[6,6,6,6,0,6,6,6,6,6,6,6,6,4,6,6,4,6,6,6,6,6,2,6,6,2,6,6,3,6,1,3,3,6,3,6,6,6,6,6,1,6,6,3,6,6,6,6,6,5,6,6,5,6],"formula":"R,U',B,U"}
+
 	#endregion
 
 	void Start ()
@@ -85,6 +89,36 @@ public class MyMagicCube : MonoBehaviour
 
 		InitScene ();
 
+//		FormulaLibrary ();
+
+		// 初步整理的公式
+//		@"{""name"":""顶部十字（小白花）"",""facemap"":[6,6,6,6,0,6,6,6,6,6,6,6,6,4,6,6,4,6,6,6,6,6,2,6,6,2,6,6,3,6,1,3,3,6,3,6,6,6,6,6,1,6,6,3,6,6,6,6,6,5,6,6,5,6],""formula"":""R,U',B,U""}"
+//		@"{""name"":""底部角块"",""facemap"":[6,0,0,0,0,0,0,0,0,4,4,4,6,4,6,6,6,6,6,2,2,6,2,6,1,6,6,0,6,6,6,3,6,6,6,6,6,1,1,6,1,6,2,6,6,5,5,5,6,5,6,6,6,6],""formula"":""R,U,R',U',R,U,R',U',R,U,R',U'""}"
+//		@"{""name"":""第二层棱块（左）"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,6,4,6,6,6,6,2,2,2,6,2,6,6,2,6,6,1,6,6,3,6,6,6,6,1,1,1,6,1,6,6,6,6,5,5,5,6,5,6,6,6,6],""formula"":""U,R,U',R',U',F',U,F"",""formula2"":""F,U,F,U,F,U',F',U',F'""}"
+//		@"{""name"":""第二层棱块（右）"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,6,4,6,6,6,6,2,2,2,6,2,6,6,6,6,6,6,6,2,3,6,6,6,6,1,1,1,6,1,6,6,1,6,5,5,5,6,5,6,6,6,6],""formula"":""U',F',U,F,U,R,U',R'"",""formula2"":""R',U',R',U',R',U,R,U,R""}"
+//		@"{""name"":""顶部单点"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,3,6,2,2,2,2,2,2,6,3,6,6,6,6,6,3,6,6,6,6,1,1,1,1,1,1,6,3,6,5,5,5,5,5,5,6,3,6],""formula"":""F,R,U,R',U',F'""}"
+//		@"{""name"":""顶部拐角"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,6,6,2,2,2,2,2,2,6,3,6,6,6,6,6,3,3,6,3,6,1,1,1,1,1,1,6,3,6,5,5,5,5,5,5,6,6,6],""formula"":""F,R,U,R',U',F'""}"
+//		@"{""name"":""顶部直线"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,6,6,2,2,2,2,2,2,6,3,6,6,6,6,3,3,3,6,6,6,1,1,1,1,1,1,6,6,6,5,5,5,5,5,5,6,3,6],""formula"":""F,R,U,R',U',F'""}"
+//		@"{""name"":""顶部十字对面错位"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,1,6,2,2,2,2,2,2,6,2,6,6,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,4,6,5,5,5,5,5,5,6,5,6],""formula"":""R,U,R',U,R,U2,R'""}"
+//		@"{""name"":""顶部十字相邻错位"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,2,6,2,2,2,2,2,2,6,4,6,6,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,6,5,6],""formula"":""R,U,R',U,R,U2,R',U""}"
+//		@"{""name"":""顶部十字完成，整面对角顶面未完成"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,4,3,2,2,2,2,2,2,3,2,6,6,3,3,3,3,3,3,3,6,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,6,5,6],""formula"":""U,R,U',L',U,R',U',L""}"
+//		@"{""name"":""顶部十字完成，整面相邻顶面未完成"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,4,6,2,2,2,2,2,2,3,2,3,6,3,6,3,3,3,3,3,3,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,6,5,6],""formula"":""U,R,U',L',U,R',U',L""}"
+//		@"{""name"":""顶部十字完成，整面相邻顶面未完成2"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,4,6,2,2,2,2,2,2,3,2,6,6,3,3,3,3,3,6,3,3,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,3,5,6],""formula"":""U,R,U',L',U,R',U',L""}"
+//		@"{""name"":""顶部十字完成，整面其他顶面未完成"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,4,6,2,2,2,2,2,2,3,2,3,6,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,3,5,3],""formula"":""U,R,U',L',U,R',U',L""}"
+//		@"{""name"":""顶部十字完成，整面其他顶面未完成2"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,3,4,3,2,2,2,2,2,2,3,2,6,6,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,3,5,6],""formula"":""R,U,R',U,R,U2,R',U""}"
+//		@"{""name"":""顶部小鱼左"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,6,4,3,2,2,2,2,2,2,6,2,3,3,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,6,5,5,5,5,5,5,3,5,6],""formula"":""U,R,U',L',U,R',U',L""}"
+//		@"{""name"":""顶部小鱼右"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,3,4,6,2,2,2,2,2,2,6,2,6,3,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,3,5,5,5,5,5,5,6,5,3],""formula"":""U,R,U',L',U,R',U',L""}"
+
+
+//		string str = 
+//			@"{""name"":""顶部小鱼右"",""facemap"":[0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,3,4,6,2,2,2,2,2,2,6,2,6,3,3,6,3,3,3,6,3,6,1,1,1,1,1,1,6,1,3,5,5,5,5,5,5,6,5,3],""formula"":""U,R,U',L',U,R',U',L""}";
+//		List<int> a = new List<int> ();
+//		JsonData jsdata = JsonMapper.ToObject (str);
+//		for (int i = 0; i < jsdata ["facemap"].Count; i++) {
+//			a.Add ((int)jsdata ["facemap"] [i]);
+//		}
+//		userrecord = jsdata ["formula"].ToString ();
+//		SetStoreState (a);
 	}
 
 	void InitScene ()
@@ -95,7 +129,7 @@ public class MyMagicCube : MonoBehaviour
 			SetEditColor ();
 		} else if (Global.State == Global.GameState.Exercise || Global.State == Global.GameState.Learn) {
 			//设置一个公式库唯一标志号，用来调用公式场景和所需公式。
-			SetFullColor ();
+//			SetFullColor ();
 		}
 	}
 
@@ -120,9 +154,7 @@ public class MyMagicCube : MonoBehaviour
 			Debug.LogWarning ("找不到单体！cann't find the cube or face!");
 			return;
 		}
-
-//		Cubes = new SingleCube[27];
-
+			
 		int numInClass = CubeClass * CubeClass;
 		int numInCube = numInClass * CubeClass;
 
@@ -134,7 +166,6 @@ public class MyMagicCube : MonoBehaviour
 			GameObject obj = Instantiate (CubePrefab);
 			obj.transform.SetParent (this.transform);
 			obj.transform.localScale = Vector3.one * CubeSize * 0.99f * 3f / CubeClass;
-//			obj.transform.localScale = Vector3.one * CubeSize * 0.9f * 3f / CubeClass;
 			obj.transform.position = new Vector3 (-1.5f + 1.5f / CubeClass + 3f / CubeClass * ((i % numInClass) / CubeClass),
 				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i / numInClass),
 				-1.5f + 1.5f / CubeClass + 3f / CubeClass * (i % CubeClass)) * CubeSize;
@@ -215,45 +246,6 @@ public class MyMagicCube : MonoBehaviour
 				objface.transform.eulerAngles = new Vector3 (0, -90, 0);
 				cubefaces [i].facestyle = CubeFaceStyle.Back;
 			}
-			/*
-			if (i < 9) {
-				j = i;
-				l = j;
-				obj.transform.position = new Vector3 (j / 3 - 1, -1.5f, j % 3f - 1f) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (-90, 0, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Down;
-			} else if (i < 18) {
-				j = i - 9;
-				l = (j / 3) * 9 + (j % 3) * 3 + 2;
-				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, 1.5f) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (180, 0, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Front;
-			} else if (i < 27) {
-				j = i - 18;
-				l = (j / 3) * 9 + j % 3;
-				obj.transform.position = new Vector3 (-1.5f, j / 3 - 1, j % 3 - 1) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (0, 90, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Right;
-			} else if (i < 36) {
-				j = i - 27;
-				l = j + 18;
-				obj.transform.position = new Vector3 (j / 3 - 1, 1.5f, j % 3f - 1f) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (90, 0, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Up;
-			} else if (i < 45) {
-				j = i - 36;
-				l = (j / 3) * 9 + (j % 3) * 3;
-				obj.transform.position = new Vector3 (j % 3 - 1, j / 3 - 1, -1.5f) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (0, 0, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Left;
-			} else if (i < 54) {
-				j = i - 45;
-				l = (j / 3) * 9 + j % 3 + 6;
-				obj.transform.position = new Vector3 (1.5f, j / 3 - 1, j % 3 - 1) * CubeSize;
-				obj.transform.eulerAngles = new Vector3 (0, -90, 0);
-				cubefaces [i].facestyle = CubeFaceStyle.Back;
-			}
-			*/
 
 			objface.transform.SetParent (Cubes [l].transform);
 
@@ -261,7 +253,6 @@ public class MyMagicCube : MonoBehaviour
 			objface.name = "Face" + i.ToString ("D2");
 			cubefaces [i].cube = Cubes [l];
 			cubefaces [i].operater = this;
-//			cubefaces [i].gameObject.SetActive (false);
 		}
 		RecordMagicCubeState ();
 	}
@@ -294,8 +285,19 @@ public class MyMagicCube : MonoBehaviour
 			Cubes [i].transform.position = positionlist [i];
 			Cubes [i].transform.eulerAngles = rotationlist [i];
 		}
+		// 因为之前都是改变块的位置来打乱魔方的，所以这个面的颜色是不变的，以后要是开始改变魔方的面的颜色的时候就需要下面的方法了
 		for (int j = 0; j < cubefaces.Length; j++) {
-			cubefaces [j].mycolor = colorlist [j];
+			cubefaces [j].SetMapColor (colorlist [j]);
+		}
+	}
+	// 块的位置都是初始时候的，面的颜色是变化的
+	public void SetStoreState (List<int> facemap)
+	{
+		ToOriginalPos ();
+		for (int j = 0; j < cubefaces.Length; j++) {
+			if (j < facemap.Count) {
+				cubefaces [j].SetMapColor ((MagicColor)facemap [j]);
+			}
 		}
 	}
 
@@ -361,8 +363,9 @@ public class MyMagicCube : MonoBehaviour
 
 	public void ColorDelete (MagicColor color)
 	{
-		if (color != MagicColor.None)
+		if (color != MagicColor.None) {
 			EditColorStore [color] -= 1;
+		}
 	}
 
 	public void ColorMapAdd (SingleCube cube, CubeMark mark)
@@ -491,10 +494,10 @@ public class MyMagicCube : MonoBehaviour
 				AutoBroken ();		
 			}
 			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
-				PlayUserRecord ();		
+				PlayUserRecord ();
 			}
 			if (GUI.Button (new Rect (150f, 50f, 100f, 40f), "再来一次")) {
-				OnceAgain ();			
+				OnceAgain ();
 			}
 			if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除用户操作记录")) {
 				CleanUserOperate ();
@@ -536,18 +539,31 @@ public class MyMagicCube : MonoBehaviour
 			if (GUI.Button (new Rect (300f, 50f, 100f, 40f), "清除录入的公式")) {
 				formula = "";
 			}
-			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看用户操作记录")) {
-				PlayUserEditFormula ();		
+			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "运行用户操作记录")) {
+				PlayUserEditFormula ();
 			}
 			if (!string.IsNullOrEmpty (formula)) {
 				GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在编辑的公式为" + formula);	
-				print (formula);
 			}
 			if (!string.IsNullOrEmpty (doingformula)) {
-				GUI.Label (new Rect (0f, 200f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
+				GUI.Label (new Rect (0f, 250f, Screen.width, 40f), "正在执行的公式为" + doingformula);		
 			}
-
+		} else if (Global.State.Equals (Global.GameState.Learn)) {
+			// 创建公式库，其内包括公式库场景，可以应用的公式，适用于什么情况，公式的名称
+			if (GUI.Button (new Rect (150f, 0f, 100f, 40f), "输出页面状态")) {
+				string lib = "";
+				for (int i = 0; i < cubefaces.Length; i++) {
+					lib += "," + (int)cubefaces [i].mycolor;
+				}	
+				print (lib);
+			}
+			if (GUI.Button (new Rect (300f, 0f, 100f, 40f), "查看公式操作")) {
+				singleanitime = 0.4f;
+				spacetime = 0.2f;
+				DoMyFormula (userrecord);
+			}
 		}
+
 		Vector2 v2 = Vector2.zero;
 		// 二指或以上操作，并且没有判定为转动和运行公式
 		if (Input.touchCount > 1 && !rotatejudged && !flipjudged && !flipping && !rotating) {
@@ -747,146 +763,6 @@ public class MyMagicCube : MonoBehaviour
 			}
 		}
 	}
-	/*
-	void FormularKeyInput ()
-	{
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("R");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.R);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("R2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.R2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("R'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.R0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("L");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.L);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("L2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.L2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("L'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.L0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("U");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.U);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("U2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.U2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("U'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.U0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("D");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.D);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("D2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.D2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("D'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.D0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("F");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.F);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("F2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.F2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("F'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.F0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("B");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.B);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("B2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.B2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("B'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.B0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("X");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.X);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("X2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.X2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("X'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.X0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Y");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Y);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Y2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Y2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Y'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Y0);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Z");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Z);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Z2");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Z2);
-		}
-		if (Global.State == Global.GameState.Operate || Global.State == Global.GameState.Color || Global.State == Global.GameState.Exercise) {
-			RecordUserOperate ("Z'");
-		} else if (Global.State == Global.GameState.Formular) {
-			FormularAdd (OperateStep.Z0);
-		}
-	}
-*/
 
 	#region Control
 
@@ -1897,7 +1773,7 @@ public class MyMagicCube : MonoBehaviour
 //		if (recordbrokenstate) {
 //			RecordMagicCubeState ();
 //		}
-		print ("state done");
+		print ("formula has done");
 		yield return null;
 	}
 
@@ -2178,7 +2054,7 @@ public class MyMagicCube : MonoBehaviour
 	{
 		ToOriginalPos ();
 		SetEditColor ();
-		string formulaname = "FCorner1";
+		string formulaname = "TTopface7";
 		switch (formulaname) {
 		#region states
 		case "FEdge1":
